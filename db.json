@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "id": 1,
+      "name": "file_1.txt",
+      "size": 2669,
+      "type": "text/plain"
+    },
+    {
+      "id": 2,
+      "name": "file_2.txt",
+      "size": 12934,
+      "type": "text/plain"
+    },
+    {
+      "id": "d614",
+      "name": "IMG_20241124_223138.jpg",
+      "size": 3545947,
+      "type": "image/jpeg"
+    }
+  ]
+}
