@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FileData } from "../types/FileData";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/files";
+const apiPreset = import.meta.env.VITE_APP_CLOUDINARY_UPLOAD_PRESET;
+const apiUrl = import.meta.env.VITE_APP_CLOUDINARY_UPLOAD_URL;
 
 const FileUploader: React.FC = () => {
   const [files, setFiles] = useState<FileData[]>([]);
@@ -16,44 +17,39 @@ const FileUploader: React.FC = () => {
     }
   };
 
-  const uploadFile = () => {
+  const uploadFile = async () => {
     if (!selectedFile) return;
-
     setLoading(true);
-    const fileData = {
-      name: selectedFile.name,
-      size: selectedFile.size,
-      type: selectedFile.type,
-    };
 
-    axios
-      .post<FileData>(API_URL, fileData)
-      .then((response) => setFiles([...files, response.data]))
-      .catch((error) => console.error("Erro pujant el fitxer:", error))
-      .finally(() => setLoading(false));
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("upload_preset", apiPreset);
+
+    try {
+      const response = await axios.post(apiUrl, formData);
+
+      const newFile: FileData = {
+        url: response.data.secure_url,
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type,
+      };
+
+      setFiles([...files, newFile]);
+      alert("Fitxer pujat correctament!");
+    } catch (error) {
+      console.error("Error pujant el fitxer", error);
+      alert("Error durant la pujada del fitxer");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteFile = (id: string) => {
-    axios
-      .delete(`${API_URL}/${id}`)
-      .then(() => setFiles(files.filter((file) => file.id !== id)));
-  };
-
-  useEffect(() => {
-    setLoading(true);
-    axios
-      .get<FileData[]>(API_URL)
-      .then((response) => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve(response);
-          }, 3000);
-        });
-      })
-      .then((response) => setFiles(response.data))
-      .catch((error) => console.error("Error carregant arxius:", error))
-      .finally(() => setLoading(false));
-  }, []);
+  //   const deleteFile = (id: string) => {
+  //     axios
+  //       .delete(`${API_URL}/${id}`)
+  //       .then(() => setFiles(files.filter((file) => file.id !== id)));
+  //   };
 
   return (
     <>
@@ -61,12 +57,25 @@ const FileUploader: React.FC = () => {
         <h1>Gestor de Fitxers</h1>
         {loading && <p>Carregant...</p>}
         <input type="file" onChange={handleFileChange} />
-        <button onClick={uploadFile}>Pujar</button>
+        <button onClick={uploadFile} disabled={loading}>
+          {loading ? "Pujant..." : "Pujar"}
+        </button>
         <ul>
-          {files.map((file) => (
-            <li key={file.id}>
-              {file.name} - {file.size}bytes
-              <button onClick={() => deleteFile(file.id)}> Eliminar </button>
+          {files.map((file, index) => (
+            <li key={index}>
+              <a href={file.url} target="_blank">
+                {file.name}
+              </a>
+              {/* Només si és una imatge, que la mostri */}
+              {file.type.startsWith("image/") && (
+                <div>
+                  <img
+                    src={file.url}
+                    alt={file.name}
+                    style={{ maxWidth: "200px", maxHeight: "200px" }}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
