@@ -24,6 +24,7 @@ const FileUploader: React.FC = () => {
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("upload_preset", apiPreset);
+    formData.append("folder", "Proves");
 
     try {
       const response = await axios.post(apiUrl, formData);
@@ -54,7 +55,6 @@ const FileUploader: React.FC = () => {
   return (
     <>
       <div>
-        <h1>Gestor de Fitxers</h1>
         {loading && <p>Carregant...</p>}
         <input type="file" onChange={handleFileChange} />
         <button onClick={uploadFile} disabled={loading}>
